@@ -271,14 +271,27 @@ test("off", function() {
 
     var handler = function(){};
 
+    var context = {};
+
     module.on({
         "foo" : handler,
         "bar" : function(){}
     });
 
+    module.on({
+      "baz" : handler,
+      "qux" : function(){}
+    }, context);
+
+    module.on({
+      "a" : function(){},
+      "b" : function(){},
+      "c" : function(){}
+    }, context);
+
     var events = Stapes._.eventHandlers[module._guid];
 
-    ok(Object.keys(events).length === 2, "Event handlers are set");
+    ok(Object.keys(events).length === 7, "Event handlers are set");
 
     module.off("foo", handler);
 
@@ -287,6 +300,20 @@ test("off", function() {
     module.off("bar");
 
     ok(!events.bar, "bar handler removed");
+
+    module.off("baz", null, context);
+
+    ok(!events.baz.length, "baz handler removed");
+
+    module.off("qux", handler, context);
+
+    ok(!events.qux.length, "qux handler removed");
+
+    module.off(null, null, context);
+
+    ok(!events.a.length, "a handler removed");
+    ok(!events.b.length, "b handler removed");
+    ok(!events.c.length, "c handler removed");
 
     module.off();
 

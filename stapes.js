@@ -259,20 +259,35 @@
             }
         },
 
-        removeEventHandler : function(type, handler) {
+        removeEventHandler : function(type, handler, scope) {
             var handlers = _.eventHandlers[this._guid];
 
-            if (type && handler) {
-                // Remove a specific handler
+            if (type && (handler || scope)) {
+                // Remove a specific handler, specific scope, or both
                 handlers = handlers[type];
                 if (!handlers) return;
 
-                for (var i = 0, l = handlers.length, h; i < l; i++) {
+                for (var i = 0, l = handlers.length, h, s; i < l; i++) {
                     h = handlers[i].handler;
-                    if (h && h === handler) {
+                    s = handlers[i].scope;
+                    if ((h && handler && h === handler) ||
+                        (s && scope && s === scope)) {
                         handlers.splice(i--, 1);
                         l--;
                     }
+                }
+            } else if (scope) {
+                // Remove all handlers for a specific scope
+                for (var type in handlers) {
+                  var events = handlers[type];
+                  if (!events) continue;
+                  for (var i = 0, l = events.length, s; i < l; i++) {
+                    s = events[i].scope;
+                    if (s && s === scope) {
+                      events.splice(i--, 1);
+                      l--;
+                    }
+                  }
                 }
             } else if (type) {
                 // Remove all handlers for a specific type
